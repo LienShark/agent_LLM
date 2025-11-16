@@ -6,8 +6,10 @@ from datetime import datetime, timedelta
 
 # LangChain 導入
 from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
-from langchain.schema.output_parser import StrOutputParser
+# from langchain.prompts import ChatPromptTemplate
+# from langchain.schema.output_parser import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate       # <-- 修正
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.tools import StructuredTool
 
 # 導入你的工具

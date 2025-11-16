@@ -18,6 +18,12 @@ if st.button("開始規劃行程 🚀"):
     else:
         # --- 步驟 3: 執行你的 Python 邏輯 ---
         try:
+            if "OPENAI_API_KEY" not in st.secrets:
+                st.error("請在 Streamlit Cloud 的 secrets 中設定 OPENAI_API_KEY")
+                st.stop()  # 停止執行
+
+                # 從 secrets 獲取 API key
+            api_key = st.secrets["OPENAI_API_KEY"]
             # 顯示載入動畫
             with st.spinner("AI 正在為您規劃中，請稍候..."):
                 # 1. 初始化狀態
