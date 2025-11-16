@@ -30,7 +30,7 @@ if st.button("開始規劃行程 🚀"):
                 state = PlanningState(user_query=user_input)
 
                 # 2. 建立 Agent
-                planner = PlannerAgent()
+                planner = PlannerAgent(api_key=api_key)
 
                 # 3. 執行你的規劃流程
                 updated_state = planner.generate_initial_plan(state)
