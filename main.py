@@ -18,12 +18,12 @@ from tools.search_attractions import search_attractions
 # 導入你的狀態模型
 from state.model import PlanningState
 
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
 
 class PlannerAgent:
-    def __init__(self, model_name: str = "gpt-4o"):
-        self.llm = ChatOpenAI(model=model_name, temperature=0.0)
+    def __init__(self, api_key: str , model_name: str = "gpt-4o"):
+        self.llm = ChatOpenAI(api_key=api_key , model=model_name, temperature=0.0)
         # 包含景點搜尋工具
         self.tools = [search_flights, search_hotels, search_attractions]
         # 綁定工具到 LLM
