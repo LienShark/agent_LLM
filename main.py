@@ -219,10 +219,24 @@ class PlannerAgent:
             "search_results": json.dumps(current_state.search_results, ensure_ascii=False)
         })
 
-        print(f"--- LLM 優化行程回應: ---\n{response_str}")
+        print(f"--- LLM 優化行程回應 (原始): ---\n{response_str}")
 
-        # 清理 Markdown 標記
-        response_str = re.sub(r'^```json\n|\n```$', '', response_str).strip()
+        # --- ***【強力修改】*** ---
+        # 舊的清理方法 (太弱):
+        # response_str = re.sub(r'^```json\n|\n```$', '', response_str).strip()
+
+        # 新的提取方法 (更強大):
+        # 尋找從第一個 '{' 到最後一個 '}' 的所有內容
+        json_match = re.search(r'\{.*\}', response_str, re.DOTALL)
+
+        if not json_match:
+            print(f"--- LLM 回應中找不到 JSON 區塊 ---")
+            current_state.final_itinerary = {"error": "LLM 回應中找不到 JSON 區塊"}
+            return current_state
+
+        response_str = json_match.group(0)
+        print(f"--- 提取到的 JSON 字串: ---\n{response_str}")
+        # --- ***【修改結束】*** ---
 
         try:
             final_itinerary = json.loads(response_str)
@@ -235,12 +249,82 @@ class PlannerAgent:
 
         return current_state
 
+    # def optimize_itinerary(self, current_state: PlanningState) -> PlanningState:
+    #     """使用 LLM 分析搜尋結果，選擇總成本最低的行程，並生成最終行程計劃"""
+    #     prompt_template = ChatPromptTemplate.from_messages(
+    #         [
+    #             (
+    #                 "system",
+    #                 """你是一位頂級的行程規劃師，任務是分析多個日期範圍的航班和飯店搜尋結果，選擇總成本（航班+飯店）最低的行程，並生成最終行程計劃，包含航班、飯店和動漫/美食景點建議。
+    #
+    #                 **輸入資料**：
+    #                 {search_results}
+    #
+    #                 **要求**：
+    #                 1. 計算每個日期範圍的總成本（航班價格 + 飯店價格 * 4晚）。
+    #                 2. 選擇總成本最低的日期範圍。
+    #                 3. 使用動漫和美食景點建議，生成一個五天四夜的行程計劃（每天包含合理的數個活動，不會太少也不至於太趕）。
+    #                 4. 回傳 JSON 格式的最終行程計劃：
+    #                 {{
+    #                     "selected_date_range": {{"start_date": "YYYY-MM-DD", "end_date": "YYYY-MM-DD"}},
+    #                     "total_cost": float,
+    #                     "flights": {{...}},
+    #                     "hotel": {{...}},
+    #                     "itinerary": [
+    #                         {{"day": 1, "activities": ["活動1", "活動2"]}},
+    #                         ...
+    #                     ]
+    #                 }}
+    #                 5.簡單說一下每一個時間段的最小花費，讓使用者明白為何選擇當前的行程
+    #
+    #                 **注意**：
+    #                 - 如果某個日期範圍缺少航班或飯店資料，跳過該範圍。
+    #                 - 航班價格取最低價格，飯店價格取最低價格（每晚）。
+    #                 - 動漫和美食景點從 search_attractions 結果中選擇。
+    #                 - 你的回答必須是純 JSON 格式，不包含任何額外的文字或 Markdown 標記。
+    #                 """,
+    #             ),
+    #         ]
+    #     )
+    #
+    #     chain = prompt_template | self.llm | StrOutputParser()
+    #
+    #     print("--- LLM 正在分析搜尋結果並優化行程... ---")
+    #
+    #     response_str = chain.invoke({
+    #         "search_results": json.dumps(current_state.search_results, ensure_ascii=False)
+    #     })
+    #
+    #     print(f"--- LLM 優化行程回應: ---\n{response_str}")
+    #
+    #     # 清理 Markdown 標記
+    #     response_str = re.sub(r'^```json\n|\n```$', '', response_str).strip()
+    #
+    #     try:
+    #         final_itinerary = json.loads(response_str)
+    #         current_state.final_itinerary = final_itinerary
+    #         current_state.global_score = final_itinerary.get("total_cost")
+    #         print(f"--- 成功生成最終行程: {final_itinerary} ---")
+    #     except json.JSONDecodeError as e:
+    #         print(f"--- LLM 行程優化回應格式錯誤: {e} ---")
+    #         current_state.final_itinerary = {"error": "無法解析行程優化結果"}
+    #
+    #     return current_state
+
 
 if __name__ == '__main__':
     state = PlanningState(
-        user_query="今年2025年的十月我想去東京，幫我找最便宜的五天四夜行程，我對動漫和美食有興趣。"
+        user_query="今年2025年的十二月我想去東京，幫我找最便宜的五天四夜行程，我對動漫和美食有興趣。"
     )
-    planner = PlannerAgent()
+    from dotenv import load_dotenv
+
+    print("--- 執行本地測試 (main.py) ---")
+
+    load_dotenv()  # 讀取你本地的 .env 檔案
+
+    # 從環境變數讀取 API key
+    local_api_key = os.environ.get("OPENAI_API_KEY")
+    planner = PlannerAgent(api_key=local_api_key)
     updated_state = planner.generate_initial_plan(state)
     updated_state = planner.execute_plan(updated_state)
     updated_state = planner.optimize_itinerary(updated_state)

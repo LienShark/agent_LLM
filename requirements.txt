@@ -6,3 +6,4 @@ langchain-openai
 langchain-core
 python-dotenv
 google-search-results
+pandas
