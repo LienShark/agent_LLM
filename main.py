@@ -3,6 +3,7 @@ import json
 import re
 from typing import List, Dict
 from datetime import datetime, timedelta
+import time
 
 # LangChain 導入
 from langchain_openai import ChatOpenAI
@@ -160,6 +161,8 @@ class PlannerAgent:
             except Exception as e:
                 print(f"--- 執行 {step} 失敗: {str(e)} ---")
                 execution_results.append({"tool": tool_name, "params": params, "error": str(e)})
+
+            time.sleep(1)
 
         # 更新執行歷史
         current_state.execution_history = execution_results
@@ -489,7 +492,7 @@ class PlannerAgent:
 #     print(updated_state.model_dump_json(indent=2))
 if __name__ == '__main__':
     state = PlanningState(
-        user_query="今年2025年的十二月我想去東京，幫我找最便宜的五天四夜行程，我對動漫和美食有興趣。"
+        user_query="今年2026年的二月我想去東京，幫我找最便宜的五天四夜行程，我對動漫和美食有興趣。"
     )
     from dotenv import load_dotenv
 
