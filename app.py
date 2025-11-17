@@ -8,7 +8,7 @@ st.title("🤖 AI 旅遊行程規劃師")
 st.caption("輸入您的需求，AI 將為您規劃行程")
 
 # --- 步驟 1: 獲取使用者輸入 ---
-default_query = "今年2025年的十月我想去東京，幫我找最便宜的五天四夜行程，我對動漫和美食有興趣。"
+default_query = "今年2025年的十二月我想去東京，幫我找最便宜的五天四夜行程，我對動漫和美食有興趣。"
 user_input = st.text_area("您的旅遊需求：", value=default_query, height=100)
 
 # --- 步驟 2: 建立執行按鈕 ---
@@ -36,6 +36,7 @@ if st.button("開始規劃行程 🚀"):
                 # 3. 執行你的規劃流程
                 updated_state = planner.generate_initial_plan(state)
                 updated_state = planner.execute_plan(updated_state)
+                updated_state = planner.find_best_option(updated_state)
                 updated_state = planner.optimize_itinerary(updated_state)
 
             # --- 步驟 4: 顯示結果 ---
